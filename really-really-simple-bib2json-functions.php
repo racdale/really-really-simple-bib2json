@@ -67,7 +67,7 @@ function renderAuthor($authString) { # can make simple assumptions about how you
 		$auth = $arr[0];
 	} else {
 		for ($i=0;$i<count($arr);$i++) {
-			if ($i==count($arr)-1 & count($arr)>1) {
+			if ($i==count($arr)-1) {
 				 # remove all 'ands' but convert last one to ampersand (APA format)
 				$auth = substr($auth,0,strlen($auth)-2).' &amp; '.$arr[$i];
 			} else {
