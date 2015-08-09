@@ -12,7 +12,7 @@
 include('really-really-simple-bib2json-functions.php');
 
 echo '<div class=sectionHeader>Selected Publications</div>';
-spitBib('article pub',"examples.bib");
+spitBib('article pub',array("examples.bib","examples2.bib"));
 
 ?>
 
