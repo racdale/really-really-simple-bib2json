@@ -1,7 +1,5 @@
 <?php 
 
-$root = '/Users/rickdale/Dropbox/webstuff/rdmaterials/php.cv';
-
 # assumes $students defined as comma-delimited list of student last names
 function underlineStudents($cite) {
 	foreach (explode(',',$students) as $student) {
