@@ -1,5 +1,9 @@
 <?php 
 
+$authorLastName = 'Chomsky';
+
+date_default_timezone_set('America/Los_Angeles');
+
 # assumes $students defined as comma-delimited list of student last names
 function underlineStudents($cite) {
 	foreach (explode(',',$students) as $student) {
@@ -156,7 +160,7 @@ function printAPA($json) {
 
 
 	}
-	$cite = str_replace('Chomsky,','<b>Chomsky</b>,',$cite);
+	$cite = str_replace("$authorLastName,","<b>$authorLastName</b>,",$cite);
 	$cite = underlineStudents($cite);
 	if (!is_numeric($json['year'])) {
 		$json['year'] = '9999'; # to order...
@@ -185,7 +189,7 @@ function renderAuthor($authString) { # can make simple assumptions about how you
 
 function spitBib($classterm,$files) { # cycle through all entries of the file supplied; class term for css
 	$citeList = [];
-	foreach ($files as $file)
+	foreach ($files as $file) {
 		$fc = file_get_contents($file);
 		$fc = bibtex2json($fc);
 		foreach (explode("}",$fc) as $json_txt) {
