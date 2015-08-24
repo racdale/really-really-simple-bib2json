@@ -1,11 +1,9 @@
 <?php 
 
-$authorLastName = 'Chomsky';
-
 date_default_timezone_set('America/Los_Angeles');
 
 # assumes $students defined as comma-delimited list of student last names
-function underlineStudents($cite) {
+function underlineStudents($cite,$students) {
 	foreach (explode(',',$students) as $student) {
 		$cite = str_replace("$student,","<u>$student</u>,",$cite);
 	}
@@ -37,11 +35,13 @@ function bibtex2json($bibtex) {
 	return $json_txt;
 }
 
-function printAPA($json) {
+function printAPA($json,$authorLastName,$students) {
+	$pdfroot = 'http://cognaction.org/rdmaterials/php.cv/pdfs/';
 	for ($i=0;$i<count(array_keys($json));$i++) {
 		$json[strtolower(array_keys($json)[$i])]=$json[array_keys($json)[$i]];
 	}
-	switch (array_keys($json)[0]) {
+	$type = array_keys($json)[0];
+	switch ($type) {
 		##################################################
 		# ARTICLE 
 		##################################################
@@ -62,10 +62,10 @@ function printAPA($json) {
 		##################################################
 		case 'inproceedings':
 			$cite = renderAuthor($json['author']).' ('.$json['year'].'). '.
-				$json['title'].' In ';
+				$json['title'].'. In ';
 			if (array_key_exists('editor', $json)) {
 				$ed = '(Ed.)';
-				if (count(explode(' and ',$json['editor'])>1)) {
+				if (count(explode(' and ',$json['editor']))>1) {
 					$ed = '(Eds.)';
 				}
 				$cite .= renderAuthor($json['editor'])." $ed, ";
@@ -147,7 +147,7 @@ function printAPA($json) {
 
 		##################################################
 		# BOOKS / SPECIAL ISSUES / ETC. 
-		##################################################
+		################################################## 
 		case 'book':
 			$cite = renderAuthor($json['author']).' ('.$json['year'].'). '.
 				$json['title'].'. <em>'.$json['publisher'].'</em>';
@@ -160,15 +160,25 @@ function printAPA($json) {
 
 
 	}
-	$cite = str_replace("$authorLastName,","<b>$authorLastName</b>,",$cite);
-	$cite = underlineStudents($cite);
+	#$subject = '<b>'.$authorLastName.'</b>,';
+	#$cite = str_replace($authorLastName.',',$subject,$cite);
+	#$cite = underlineStudents($cite,$students);
 	if (!is_numeric($json['year'])) {
 		$json['year'] = '9999'; # to order...
 	}
+	$head = "<span class=pub$type></span>";
+	if (array_key_exists('local-url', $json)) {
+		$tail = " <a href='$pdfroot$type/".$json['local-url']." '><span class=pdflink></span></a>";
+	}
+	if (array_key_exists('doi', $json)) {
+		$tail .= " <a href='http://dx.doi.org/".$json['doi']."'><span class=doilink></span></a>";
+	}
 	$sortCode = strtotime($json['month'].' '.$json['day'].' '.$json['year']);
 	$sortCode = substr('0'.$sortCode,-10);
+	$sortCode = $json['year']; # comment out if creating CV...
 	return '<!--'.$sortCode.$json['author']."-->$head$cite.$tail";
 }
+
 function renderAuthor($authString) { # can make simple assumptions about how you format your author names
 	$arr = explode(' and ',$authString);
 	$auth = '';
@@ -187,7 +197,7 @@ function renderAuthor($authString) { # can make simple assumptions about how you
 	return($auth);
 }
 
-function spitBib($classterm,$files) { # cycle through all entries of the file supplied; class term for css
+function spitBib($classterm,$files,$authorLastName,$students,$searchterm) { # cycle through all entries of the file supplied; class term for css
 	$citeList = [];
 	foreach ($files as $file) {
 		$fc = file_get_contents($file);
@@ -195,7 +205,12 @@ function spitBib($classterm,$files) { # cycle through all entries of the file su
 		foreach (explode("}",$fc) as $json_txt) {
 			if (strlen(trim($json_txt))>0) {
 				$ref = get_object_vars(json_decode($json_txt.'}'));
-				$citeList[] = printAPA($ref);
+				$refContent = printAPA($ref,$authorLastName,$students);
+				if (strlen($searchterm)>0) {
+					if (strpos(strtolower($json_txt),strtolower($searchterm))!=false) $citeList[] = $refContent;
+				} elseif (strlen($searchterm)==0) {
+					$citeList[] = $refContent;
+				}
 			}
 		}
 	}
@@ -207,6 +222,7 @@ function spitBib($classterm,$files) { # cycle through all entries of the file su
 		echo $string;
 	}
 }
+
 
 ?>
 
